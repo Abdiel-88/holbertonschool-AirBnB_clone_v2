@@ -1,31 +1,38 @@
 #!/usr/bin/python3
-from flask import Flask
+"""Start a Flask web application with more complex dynamic routes"""
 
+from flask import Flask
 app = Flask(__name__)
 
-# Setting strict_slashes to False globally.
+# Enforce strict_slashes=False globally
 app.url_map.strict_slashes = False
+
 
 @app.route('/')
 def hello_hbnb():
-    """Returns 'Hello HBNB!' to the client."""
+    """Return 'Hello HBNB!'"""
     return 'Hello HBNB!'
+
 
 @app.route('/hbnb')
 def hbnb():
-    """Returns 'HBNB' to the client."""
+    """Return 'HBNB'"""
     return 'HBNB'
 
+
 @app.route('/c/<text>')
-def c_is_fun(text):
-    """Returns 'C ' followed by the value of the text variable."""
-    return 'C {}'.format(text.replace('_', ' '))
+def c_text(text):
+    """Display 'C <text>', with underscores replaced by spaces"""
+    return 'C ' + text.replace('_', ' ')
 
-@app.route('/python/')
+
+@app.route('/python/', defaults={'text': 'is cool'})
 @app.route('/python/<text>')
-def python_is_cool(text="is cool"):
-    """Returns 'Python ', followed by the value of the text variable."""
-    return 'Python {}'.format(text.replace('_', ' '))
+def python_text(text):
+    """Display 'Python <text>', with underscores replaced by spaces.
+    The default value of text is 'is cool'."""
+    return 'Python ' + text.replace('_', ' ')
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
