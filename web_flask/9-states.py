@@ -2,47 +2,38 @@
 '''A simple Flask web application.
 '''
 from flask import Flask, render_template
-
 from models import storage
 from models.state import State
 
-
 app = Flask(__name__)
-'''The Flask application instance.'''
 app.url_map.strict_slashes = False
 
 
-@app.route('/states')
+@app.route('/states', defaults={'id': None})
 @app.route('/states/<id>')
-def states(id=None):
-    '''The states page.'''
-    states = None
-    state = None
-    all_states = list(storage.all(State).values())
-    case = 404
-    if id is not None:
-        res = list(filter(lambda x: x.id == id, all_states))
-        if len(res) > 0:
-            state = res[0]
-            state.cities.sort(key=lambda x: x.name)
-            case = 2
+def states(id):
+    '''
+    The states page. Render states
+    and optionally cities of a specific state.
+    '''
+    all_states = sorted(storage.all(State).values(), key=lambda x: x.name)
+    state = next((s for s in all_states if s.id == id), None)
+
+    if state:
+        # Sort cities in the selected state by name
+        cities = sorted(state.cities, key=lambda x: x.name)
+        return render_template('9-states.html', state=state, cities=cities)
+    elif id is None:
+        # Display all states if no specific ID is provided
+        return render_template('9-states.html', states=all_states)
     else:
-        states = all_states
-        for state in states:
-            state.cities.sort(key=lambda x: x.name)
-        states.sort(key=lambda x: x.name)
-        case = 1
-    ctxt = {
-        'states': states,
-        'state': state,
-        'case': case
-    }
-    return render_template('9-states.html', **ctxt)
+        # Return a 404 page if the state is not found
+        return render_template('9-not_found.html'), 404
 
 
 @app.teardown_appcontext
 def flask_teardown(exc):
-    '''The Flask app/request context end event listener.'''
+    '''Close the database or file storage system at the end of the request.'''
     storage.close()
 
 
